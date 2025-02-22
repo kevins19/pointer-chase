@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+
+# additional
+ptr_chase
+arraygen
+array.dat
