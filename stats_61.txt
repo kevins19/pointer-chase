@@ -1,0 +1,3 @@
+L1: 3 MB, 64 instances
+L2: 128 MB, 64 instances
+L3: 120 MB, 2 instances
