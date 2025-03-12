@@ -79,8 +79,10 @@ echo "DRAM test: $DRAM_ptr_size"
 configs=("L1" "L2" "L3" "DRAM")
 sizes=("$L1_ptr_size" "$L2_ptr_size" "$L3_ptr_size" "$DRAM_ptr_size")
 
-csv_file="results.csv"
-echo "Configuration,Iteration,Array size,latency,TLB miss" > "$csv_file"
+csv_file="results_${MACHINE_ID}.csv"
+
+# echo "Configuration,Iteration,Array size,latency,cycles,miss_dltb_hit_stlb,active_page_walk_cycles,freq,instructions" > "$csv_file"
+echo "Configuration,Iteration,Array size,latency,cycles,freq,instructions" > "$csv_file"
 
 for index in "${!configs[@]}"; do
     config="${configs[$index]}"
@@ -90,17 +92,21 @@ for index in "${!configs[@]}"; do
     
     sed -i.bak -E "s/^(PTRCHASE_ARRAY_SIZE\s*\?*=).*/PTRCHASE_ARRAY_SIZE = $size    # $config/" Makefile
     
-    make clean
-    make
     for i in {1..10}; do
-         echo "  --> Test iteration $i for $config"
-         output=$(numactl -C 0 -m 0 perf stat -e L1-dcache-loads,L1-dcache-load-misses,L2-loads,L2-load-misses,LLC-loads,LLC-load-misses ./ptr_chase 2>&1)
-         
-         array_size=$(echo "$output" | grep -oP 'array_bytes:\s*\K\S+')
-         latency=$(echo "$output" | grep -oP 'mem latency is.*?:\s*\K[0-9.]+(?=ns)')
-         tlb_miss=$(echo "$output" | grep -oP '\K[0-9]+(?= tlb1missTLBmiss)')
-         
-         echo "$config,$i,$array_size,$latency,$tlb_miss" >> "$csv_file"
+        make clean
+        make
+        echo "  --> Test iteration $i for $config"
+        output=$(numactl -C 0 -m 0 ./ptr_chase 2>&1)
+        
+        array_size=$(echo "$output" | grep -oP 'array_bytes:\s*\K\S+')
+        instructions=$(echo "$output" | grep -oP 'instructions:\s*\K\S+')
+        freq=$(echo "$output" | grep -oP 'freq:\s*\K\S+')
+        latency=$(echo "$output" | grep -oP 'mem latency is.*?:\s*\K[0-9.]+(?=ns)')
+        cycles=$(echo "$output" | grep -oP '\K[0-9]+(?= cycles)')
+        
+        echo "$config,$i,$array_size,$latency,$cycles,$freq,$instructions" >> "$csv_file"
+
+        echo $output
     done
 done
 

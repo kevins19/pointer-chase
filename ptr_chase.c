@@ -62,7 +62,7 @@ struct line{
 };
 
 
-struct line *array;
+struct line *ar;
 
 
 int main(int argc, char *argv[]) {
@@ -75,12 +75,12 @@ int main(int argc, char *argv[]) {
     //     exit(1);
     // }
 
-    array = (struct line *) mmap(NULL, array_bytes, 
+    ar = (struct line *) mmap(NULL, array_bytes, 
                           PROT_READ | PROT_WRITE,
                           MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
                           -1, 0);
 
-    if (array == MAP_FAILED) {
+    if (ar == MAP_FAILED) {
         perror("mmap with huge pages failed");
         exit(1);
     }
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     ifstream inputFile ("array.dat");
     if (!inputFile.is_open()) {
         printf("Random walk file cannot be located.\n");
-        free(array);
+        free(ar);
         exit(1);
     }
 
@@ -98,26 +98,26 @@ int main(int argc, char *argv[]) {
     {
         uint64_t tmp;
         inputFile >> tmp;
-        array[i].next = (struct line *) tmp;
+        ar[i].next = (struct line *) tmp;
     }
 
-    // cout << "iterations are:" << ITERS << endl;
+    cout << "iterations are:" << ITERS << endl;
     // cout << "array elements are:" << ARRAY_ELEMS << endl;
     cout << "array_bytes: " << array_bytes << endl; 
 
     // if we do not need the information for tlb and etc we can just execute counter=0 (instructions and cycles)
-    for (int counter = 0; counter < 2; ++counter)
+    for (int counter = 0; counter < 1; ++counter)
     {
         
-        setPerfCounters();
+        setPerfCountersNoTLB();
         initializeProfiling(counter);
         startProfiling();
 
         register int i asm("ecx") = ITERS;
         register struct line *start asm("rbx"); // rbx is fixed as the beginning of the array, what changes is the offset inside the array, given by rax
-        start = array;
+        start = ar;
         register struct line *next asm("rax"); // rax is the next element to be read inside the array
-        next = array[0].next;                  // it starts with the 64 bit information contained in the first position of the array
+        next = ar[0].next;                     // it starts with the 64 bit information contained in the first position of the array
                                                // the 64 bit information is an offset
                                                // the assembly code copies to rax the value contained at the array position (relative)0 + 64-bit offset
                                                // then in the next step it accesses 0 + the new offset to repeat the copy.
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
     readExecutionTime();
 
     // free(array);
-    munmap(array, array_bytes);
+    munmap(ar, array_bytes);
     printf("Done walking!\n");
     return 0;
 }

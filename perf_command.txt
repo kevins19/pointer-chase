@@ -1,3 +1,5 @@
 numactl -C 0 -m 0 perf stat -e L1-dcache-loads,L1-dcache-load-misses,L2-loads,L2-load-misses,LLC-loads,LLC-load-misses ./ptr_chase
 
+numactl -C 0 -m 0 perf stat -e r1012,r0E12 ./ptr_chase
+
 /nethome/kshan9/cxl/latency_bench/ptr_chase

@@ -44,6 +44,8 @@
 #include <ctime>
 
 #include <iostream>
+
+#define KEG61
 using namespace std;
 
 static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,int cpu, int group_fd, unsigned long flags) {
@@ -76,35 +78,69 @@ struct PerfCounterEventInformation {
     uint64_t config;
 };
 
-struct PerfCounterEventInformation perfCounterEventInformation[3][2];
+struct PerfCounterEventInformation perfCounterEventInformation[2][2];
 
 
-void setPerfCounters() {
-    // counters for cpu cycles and instructions
-    perfCounterEventInformation[0][0].name = "cycles:u";
+void setPerfCountersNoTLB() {
+    perfCounterEventInformation[0][0].name = "cycles";
     perfCounterEventInformation[0][0].type = PERF_TYPE_HARDWARE;
     perfCounterEventInformation[0][0].config =PERF_COUNT_HW_CPU_CYCLES;
-    perfCounterEventInformation[0][1].name = "instructions:u";
+    perfCounterEventInformation[0][1].name = "instructions";
+    perfCounterEventInformation[0][1].type = PERF_TYPE_HARDWARE;
+    perfCounterEventInformation[0][1].config =PERF_COUNT_HW_INSTRUCTIONS;
+}
+
+#ifdef KEG81
+void setPerfCounters() {
+    // counters for cpu cycles and instructions
+    perfCounterEventInformation[0][0].name = "cycles";
+    perfCounterEventInformation[0][0].type = PERF_TYPE_HARDWARE;
+    perfCounterEventInformation[0][0].config =PERF_COUNT_HW_CPU_CYCLES;
+    perfCounterEventInformation[0][1].name = "instructions";
     perfCounterEventInformation[0][1].type = PERF_TYPE_HARDWARE;
     perfCounterEventInformation[0][1].config =PERF_COUNT_HW_INSTRUCTIONS;
     
     // <umask><eventselector>
     // counters for tlb1 miss and tlb2 hit
-    perfCounterEventInformation[1][0].name = "tlb1missTLBhit";
+    perfCounterEventInformation[1][0].name = "miss_dltb_hit_stlb";
     perfCounterEventInformation[1][0].type = PERF_TYPE_RAW;
-    perfCounterEventInformation[1][0].config =0x0F45;
-    perfCounterEventInformation[1][1].name = "tlb1missTLBmiss";
-    perfCounterEventInformation[1][1].type = PERF_TYPE_RAW;
-    perfCounterEventInformation[1][1].config =0xF045;
+    perfCounterEventInformation[1][0].config =0x530f45;
+    // L1_DTLB_MISS
 
-    // counters for tlb2 miss and pagewalk
-    perfCounterEventInformation[2][0].name = "pagewalkside0";
-    perfCounterEventInformation[2][0].type = PERF_TYPE_RAW;
-    perfCounterEventInformation[2][0].config =0x0146;
-    perfCounterEventInformation[2][1].name = "pagewalkside1";
-    perfCounterEventInformation[2][1].type = PERF_TYPE_RAW;
-    perfCounterEventInformation[2][1].config =0x0246;
+    perfCounterEventInformation[1][1].name = "active_page_walk_cycles";
+    perfCounterEventInformation[1][1].type = PERF_TYPE_RAW;
+    perfCounterEventInformation[1][1].config =0x510f45; // cant seem to find on keg81
+    // https://stackoverflow.com/questions/65603571/amd-performance-counter-for-cycles-on-tlb-miss
 }
+#endif
+
+#ifdef KEG61
+void setPerfCounters() {
+  // counters for cpu cycles and instructions
+  perfCounterEventInformation[0][0].name = "cycles";
+  perfCounterEventInformation[0][0].type = PERF_TYPE_HARDWARE;
+  perfCounterEventInformation[0][0].config = PERF_COUNT_HW_CPU_CYCLES;
+  perfCounterEventInformation[0][1].name = "instructions";
+  perfCounterEventInformation[0][1].type = PERF_TYPE_HARDWARE;
+  perfCounterEventInformation[0][1].config = PERF_COUNT_HW_INSTRUCTIONS;
+
+  
+  // should also include kernel events to try to remove overhead?
+
+  // counters for STLB hit and page walking (including kernel counts)
+  perfCounterEventInformation[1][0].name = "miss_dltb_hit_stlb";
+  perfCounterEventInformation[1][0].type = PERF_TYPE_RAW;
+  // perfCounterEventInformation[1][0].config =0x532012;
+  perfCounterEventInformation[1][0].config =0x2012;
+  // DTLB_LOAD_MISSES.STLB_HIT
+
+  perfCounterEventInformation[1][1].name = "active_page_walk_cycles";     
+  perfCounterEventInformation[1][1].type = PERF_TYPE_RAW;
+  // perfCounterEventInformation[1][1].config = 0x1531012; 
+  perfCounterEventInformation[1][1].config =0x1012;
+  // https://perfmon-events.intel.com/index.html?pltfrm=spxeon.html&evnt=DTLB_LOAD_MISSES.WALK_ACTIVE
+}
+#endif
 
 
 
@@ -184,7 +220,8 @@ void readProfiling(uint32_t select) {
     {
         cout << "mem latency is (with time): " << 1000000000*((double)(((double)endTime - (double)beginTime)/CLOCKS_PER_SEC)/((double)cpuInstructions)) << "ns" << endl;
         // cout << "mem latency is: " << ((double)cpuCycles/(cpuInstructions))/2.25 << "ns" << endl;
-        cout << "calculated clocks per seconds is: " << (cpuCycles/((double)(endTime - beginTime)/ CLOCKS_PER_SEC)) << endl; 
+        cout << "freq: " << (cpuCycles/((double)(endTime - beginTime)/ CLOCKS_PER_SEC)) << endl; 
+        cout << "instructions: " << cpuInstructions << endl; 
     }
 }
 

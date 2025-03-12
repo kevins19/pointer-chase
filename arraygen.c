@@ -52,7 +52,7 @@ struct line{
     uint8_t pad[CACHE_LINE-8];
 };
 
-struct line *array;
+struct line *ar;
 uint64_t seq[ARRAY_ELEMS-1];
 uint64_t res[ARRAY_ELEMS];
 
@@ -62,7 +62,7 @@ uint64_t res[ARRAY_ELEMS];
    Only effective if ARRAY_ELEMS is much smaller than RAND_MAX;
    if this may not be the case, use a better random
    number generator. */
-void shuffle(uint64_t *array, uint64_t n) {
+void shuffle(uint64_t *ar, uint64_t n) {
     // printf("RAND_MAX = %lu\n", RAND_MAX);
     srand(0);
     if (n > 1)
@@ -70,9 +70,9 @@ void shuffle(uint64_t *array, uint64_t n) {
         for (uint64_t i = 0; i < n - 1; i++)
         {
           uint64_t j = i + rand() / (RAND_MAX / (n - i) + 1);
-          uint64_t t = array[j];
-          array[j] = array[i];
-          array[i] = t;
+          uint64_t t = ar[j];
+          ar[j] = ar[i];
+          ar[i] = t;
         }
     }
 }
@@ -98,14 +98,14 @@ void walk_generator(){
 
     // 
     for(uint64_t j = 0; j < ARRAY_ELEMS; j++){
-        array[j].next = (struct line *) (res[j] * CACHE_LINE); // multiply for 64 to be 64-byte aligned accesses 
+        ar[j].next = (struct line *) (res[j] * CACHE_LINE); // multiply for 64 to be 64-byte aligned accesses 
     }
 }
 
 int main(int argc, char *argv[]) {
     int r;
     uint64_t array_bytes = ((uint64_t)ARRAY_ELEMS) * sizeof(struct line);
-    r = posix_memalign((void **)&array, CACHE_LINE, array_bytes);
+    r = posix_memalign((void **)&ar, CACHE_LINE, array_bytes);
     if (r != 0) {
       printf("Allocation of array failed, return code is %d\n",r);
       exit(1);
@@ -118,10 +118,10 @@ int main(int argc, char *argv[]) {
     }
     for (uint64_t i = 0; i < (uint64_t)ARRAY_ELEMS; ++i)
     {
-        outputFile << (uint64_t) array[i].next << endl;
+        outputFile << (uint64_t) ar[i].next << endl;
     }
     outputFile.close();
-    free(array);
+    free(ar);
     printf("Random walk file generated.\n");
     return 0;
 }

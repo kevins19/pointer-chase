@@ -1,0 +1,11 @@
+https://perfmon-events.intel.com/#
+
+
+Measuring on-chip fabric latency:
+https://ieeexplore.ieee.org/document/6787311
+
+Breakdown of latency components:
+https://sites.utexas.edu/jdm4372/2011/03/10/memory-latency-components/
+
+- use lmbench to measure cycles for tlb miss
+- ensure mem fits in dram
