@@ -1,0 +1,4 @@
+Cache Line Size: 128
+L1: 1.5 MB, 48 instances
+L2: 48 MB, 48 instances
+L3: 192 MB, 48 instances

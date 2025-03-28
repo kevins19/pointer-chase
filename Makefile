@@ -4,10 +4,10 @@ CC = c++
 TARGET = ptr_chase
 TARGET_ARRAYGEN = arraygen
 
-CACHE_LINE ?= 64
+CACHE_LINE = 128    # from config
 PTRCHASE_NUM_INSTRUCTIONS ?= 40000000  # 10M instructions
 PTRCHASE_NUM_ITERATIONS ?= 40000       # 10K iterations
-PTRCHASE_ARRAY_SIZE = 138412032    # DRAM
+PTRCHASE_ARRAY_SIZE = 33554432    # DRAM
 
 
 # Architectural details
@@ -31,13 +31,16 @@ $(info loop_instr = $(loop_instr))
 all: ptr_chase array
 
 ptr_chase: ptr_chase.c loop.h
-	$(CC) -O0 -DARRAY_ELEMS=$(array_elems) -DITERS=$(iterations) -o $(TARGET) ptr_chase.c
+	$(CC) -O0 -DCACHE_LINE=$(CACHE_LINE) -DARRAY_ELEMS=$(array_elems) -DITERS=$(iterations) -o $(TARGET) ptr_chase.c
 
-loop.h: loop_template.h
-	awk '{for(i=0; i<$(loop_instr); i++)print}' loop_template.h > loop.h
+# loop.h: lloop_template_x86.h
+# 	awk '{for(i=0; i<$(loop_instr); i++)print}' loop_template_x86.h > loop.h
+
+loop.h: loop_template_power.h
+	awk '{for(i=0; i<$(loop_instr); i++)print}' loop_template_power.h > loop.h
 
 arraygen: arraygen.c
-	$(CC) -O3 -DARRAY_ELEMS=$(array_elems) -o $(TARGET_ARRAYGEN) arraygen.c
+	$(CC) -O3 -DCACHE_LINE=$(CACHE_LINE) -DARRAY_ELEMS=$(array_elems) -o $(TARGET_ARRAYGEN) arraygen.c
 
 array: arraygen
 	./$(TARGET_ARRAYGEN)

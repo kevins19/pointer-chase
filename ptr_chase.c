@@ -56,6 +56,8 @@ using namespace std;
 #define CACHE_LINE 64
 #endif
 
+#define POWER
+
 struct line{
     struct line *next; // 8 byte
     uint8_t pad[CACHE_LINE-8];
@@ -113,6 +115,7 @@ int main(int argc, char *argv[]) {
         initializeProfiling(counter);
         startProfiling();
 
+#ifdef X86
         register int i asm("ecx") = ITERS;
         register struct line *start asm("rbx"); // rbx is fixed as the beginning of the array, what changes is the offset inside the array, given by rax
         start = ar;
@@ -128,7 +131,36 @@ int main(int argc, char *argv[]) {
             "dec %ecx;"
             "jnz start_loop;"
         );
+#endif
+#ifdef POWER
+        // register int i asm("x0") = ITERS;
+        register uint64_t i;
+        register struct line *start; // x1 is fixed as the beginning of the array, what changes is the offset inside the array, given by x2
+        register struct line *next; // rax is the next element to be read inside the array
+        register uint64_t tmp;
+        i=ITERS;
+        start = ar;
+        next = 0;
 
+        // register uint64_t next asm("x2");
+        // x2 is the next element to be read inside the array
+        // it starts with the 64 bit information contained in the first position of the array (second line of assembly)
+        // the 64 bit information is an offset
+        // the assembly code copies to x2 the value contained at the array position (relative)0 + 64-bit offset
+        // then in the next step it accesses 0 + the new offset to repeat the copy.
+        // It is being forced to perform jumps inside the array
+
+        asm __volatile__ (
+            "start_loop:"
+            #include "loop.h"
+            "ai %0, %0, -0x01;"
+            "cmpli 0, 1, %0, 0;"
+            "bne start_loop;"
+            :
+            : "r" (i), "r" (start), "r" (next), "r" (tmp)
+            : 
+        );
+#endif
         endProfiling();
         readProfiling(counter);
     }

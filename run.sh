@@ -19,6 +19,15 @@ if [ ! -f "$STATS_FILE" ]; then
     exit 1
 fi
 
+# parse cache line size
+cache_line_config=$(grep -i "^Cache Line Size:" "$STATS_FILE" | awk -F: '{print $2}' | xargs)
+if [ -z "$cache_line_config" ]; then
+    echo "Cache Line Size not specified in $STATS_FILE, using default 64"
+    cache_line_config=64
+fi
+echo "Configured cache line size: $cache_line_config"
+sed -i.bak -E "s/^(CACHE_LINE\s*\?*=).*/CACHE_LINE = $cache_line_config    # from config/" Makefile
+
 
 # func to parse cache information from stats.txt
 parse_cache() {
@@ -47,7 +56,7 @@ parse_cache() {
         multiplier=$((1024*1024*1024))
     fi
 
-    local total_bytes=$(( number * multiplier ))
+    local total_bytes=$(awk -v n="$number" -v m="$multiplier" 'BEGIN {printf "%d", n*m}')
 
     local instances
     instances=$(echo "$data" | grep -oE '[0-9]+ instances' | awk '{print $1}')
