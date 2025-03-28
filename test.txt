@@ -1,9 +1,0 @@
-Hello, I did some work over the weekend and had a few questions:
-- Could you please add me to keg8 when you get the chance? And also install perf & numactl on keg71 (and keg8 if it isn't installed). 
-- So I was digging through more of the MESS code to see how to account for TLB latency, and I had some concerns. 
-    1. Some of the Intel Sapphire Rapids use the perf code `r1012` to measure page walks, which according to perfmon is `DTLB_LOAD_MISSES.WALK_PENDING` which doesn't seem right. I think this one likely makes more sense to use: (https://perfmon-events.intel.com/index.html?pltfrm=spxeon.html&evnt=DTLB_LOAD_MISSES.WALK_COMPLETED)
-    2. Additionally, the AMD profiler seems to completely omit the cost of page walks in its calculation script (https://github.com/bsc-mem/Mess-benchmark/blob/f0fc4a4bc9ef9b6b661ab5a80e883c335bd9c563/CPU/Actual-hardware/x86/AMD-Zen2/processing/calculator.py#L139). Oddly the secondary tlb miss count is zeroed out.
-    3. It also seems like all four profilers for each of the x86 machines in the MESS repository has a different methodology for computing latency, taking into account the TLB misses. 
-- So I think I should use my own method of computing TLB/paging impact on latency (which should just require swapping out one of the perf event codes). Another option would be to just completely omit it. I think in the end it shouldn't affect results too much anyways since we use huge pages. Let me know which approach I should take.
-
-Thank you!
