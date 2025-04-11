@@ -56,7 +56,7 @@ using namespace std;
 #define CACHE_LINE 64
 #endif
 
-#define POWER
+#define X86
 
 struct line{
     struct line *next; // 8 byte
