@@ -218,7 +218,7 @@ void readProfiling(uint32_t select) {
 
     if (select==0)
     {
-        cout << "mem latency is (with time): " << 1000000000*((double)(((double)endTime - (double)beginTime)/CLOCKS_PER_SEC)/((double)cpuInstructions / 2)) << "ns" << endl;
+        cout << "mem latency is (with time): " << 1000000000*((double)(((double)endTime - (double)beginTime)/CLOCKS_PER_SEC)/((double)cpuInstructions)) << "ns" << endl;
         // cout << "mem latency is: " << ((double)cpuCycles/(cpuInstructions))/2.25 << "ns" << endl;
         cout << "freq: " << (cpuCycles/((double)(endTime - beginTime)/ CLOCKS_PER_SEC)) << endl; 
         cout << "instructions: " << cpuInstructions << endl; 
