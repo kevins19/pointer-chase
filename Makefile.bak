@@ -7,7 +7,7 @@ TARGET_ARRAYGEN = arraygen
 CACHE_LINE = 64    # from config
 PTRCHASE_NUM_INSTRUCTIONS ?= 40000000  # 10M instructions
 PTRCHASE_NUM_ITERATIONS ?= 40000       # 10K iterations
-PTRCHASE_ARRAY_SIZE = 67108864    # power of two 26
+PTRCHASE_ARRAY_SIZE = 536870912    # power of two 29
 
 
 # Architectural details

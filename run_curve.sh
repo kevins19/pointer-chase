@@ -27,7 +27,7 @@ sed -i.bak -E "s/^(CACHE_LINE\s*\?*=).*/CACHE_LINE = $cache_line_config    # fro
 
 # memory range of latency curve
 MIN_EXP=10   # 2^10 = 1KB
-MAX_EXP=27   # 2^27 = 128MB
+MAX_EXP=29   # 2^27 = 128MB
 
 csv_file="curve_results_${MACHINE_ID}.csv"
 echo "Power,ArraySize,latency,cycles,freq,instructions" > "$csv_file"
