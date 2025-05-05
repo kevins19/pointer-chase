@@ -46,7 +46,7 @@ sorted_lines = [ln for _, _, ln in sorted_data]
 
 plt.xscale('log')
 plt.xlabel("Array Size (log scale)")
-plt.ylabel("Latency (ms)")
+plt.ylabel("Latency (ns)")
 plt.title("Latency vs Array Size Across Machines")
 plt.legend(sorted_lines, sorted_labels, title="Machine (Cores)")
 plt.grid(True, which='both', linestyle='--', linewidth=0.5)
