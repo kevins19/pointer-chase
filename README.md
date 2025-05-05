@@ -21,6 +21,7 @@ sysctl -w vm.nr_hugepages=1024
 
 Disabling HW Prefetchers:
 _Be sure to confirm registers and values before setting them._
+
 AMD:
 ```bash
 sudo modprobe msr
