@@ -40,6 +40,10 @@ plt.ylabel("Latency (ns)")
 for lvl in ['L1', 'L2', 'L3']:
     if stats[lvl]:
         plt.axvline(x=stats[lvl], linestyle='--', label=f"{lvl} Limit ({int(stats[lvl])} bytes)")
+
+# tmp = [192 * 1024 * 1024 / 4]
+# plt.axvline(x=tmp, linestyle='--', label=f"L3 on-chip ({int(tmp[0])} bytes)")
+
 plt.legend()
 plt.tight_layout()
-plt.show()
+plt.savefig(f"./plots/plot_{mid}.png")
